@@ -1,0 +1,15 @@
+config:
+  target: "http://localhost:3005"
+  phases:
+    - duration: 30
+      arrivalRate: 10
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  http:
+    timeout: 30000
+scenarios:
+  - name: "Get messages by channelId"
+    flow:
+      - get:
+          url: "/messages?channelId=2"

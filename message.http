@@ -1,0 +1,17 @@
+#Get channel_id: 1 messages
+GET http://localhost:3005/messages?channelId=1 HTTP/1.1
+
+###
+#Get channel_id: 2 messages
+GET http://localhost:3005/messages?channelId=2 HTTP/1.1
+
+###
+
+POST http://localhost:3005/messages HTTP/1.1
+content-type: application/json
+
+{
+    "channelId": 1,
+    "content": "test message",
+    "authorId": 1
+}
