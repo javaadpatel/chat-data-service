@@ -1,0 +1,29 @@
+config:
+  target: "http://localhost:3005"
+  phases:
+    - duration: 30
+      arrivalRate: 100
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  http:
+    timeout: 30000
+scenarios:
+  - name: "Get messages by channelId"
+    flow:
+      - get:
+          url: "/messages/coalesced?channelId=2"
+http:
+    responseTime:
+      enabled: true
+      percentiles:
+        - value: 50
+          label: "p50"
+        - value: 75
+          label: "p75"
+        - value: 90
+          label: "p90"
+        - value: 95
+          label: "p95"
+        - value: 99
+          label: "p99"

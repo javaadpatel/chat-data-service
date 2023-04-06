@@ -28,6 +28,7 @@ export class MessageService {
     }
 
     async getMessages(channelId: number): Promise<Message[]>{
+      await this.delay(2000);
        return await this.messageRepo.createQueryBuilder('message')
         .where('message.channelId = :channelId', { channelId })
         .getMany();
@@ -43,9 +44,9 @@ export class MessageService {
  
 
     async getMessagesCoalesced(channelId: number): Promise<{}>{
-        this.logger.log("Getting coalesced messages");
+        const startTime = Date.now();
         const eventName = 'getMessages';
-        const ob = await this.taskAggregator.runTaskObservable<Message[]>(async () => {
+        await this.taskAggregator.runTaskObservable<Message[]>(async () => {
             const messages = await this.messageRepo.createQueryBuilder('message')
              .where('message.channelId = :channelId', { channelId })
             .getMany();
@@ -54,41 +55,14 @@ export class MessageService {
             return messages;
         }, eventName);
 
-        // return new Promise(async (resolve) => {
-        //     ob.subscribe(() => {
-        //     this.logger.log("con")
-        //     // this.taskAggregator.deleteTaskResult(eventName);
-        //     resolve(null);
-        //     // return null;
-        // })});
-
         const taskResult$ = this.taskAggregator.getTaskResultObservable(eventName);
-        this.logger.log(`retrieved taskResult: ${taskResult$}`);
-        // this.logger.log(`task is observed: ${taskResult$.observed}`)
-        // return new Promise((resolve) => {
-        //     taskResult$.subscribe((taskResult) => {
-        //         this.logger.log("subscription resolved");
-        //         resolve(taskResult as Message[]);
-        //     }) 
-        // });
 
         // Wait for the task to complete and return the result as an API response
-        return taskResult$.toPromise();
-        // const result = await taskResult$.toPromise();
-        // return result as Message[];
-
-        // this.eventEmitter.on(eventName, (result: Message[]) => {
-        //     // Your subscription code here 
-        //     return result;
-        //   });
-
-        //   return new Promise((resolve) => {
-        //     this.eventEmitter.on(eventName, (result: Message[]) => {
-        //         // Your subscription code here 
-        //         resolve(result);
-        //       });
-        // });
-        
+        return taskResult$.toPromise().then((result) => {
+          const elapsedTime = Date.now() - startTime;
+          this.logger.log(`response time: ${elapsedTime} ms`);
+          return result;
+        });        
      }
     
 }

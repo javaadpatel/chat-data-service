@@ -1,6 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MessageModule } from './message/message.module';
 import { SeederModule } from './seeder/seeder.module';
@@ -24,7 +22,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     SeederModule,
     TaskAggregatorModule
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

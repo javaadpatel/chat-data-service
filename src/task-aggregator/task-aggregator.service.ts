@@ -1,13 +1,12 @@
 import { Injectable, Logger, Scope } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Observable, Subject, share } from "rxjs";
-import { Message } from "src/message/message.entity";
-
 
 @Injectable()
 export class TaskAggregatorService {
     private logger = new Logger(TaskAggregatorService.name);
     private taskResultMap = new Map<string, Subject<{}>>();
+    private queuedTasks = 0;
 
     constructor(private readonly eventEmitter: EventEmitter2){}
 
@@ -35,20 +34,23 @@ export class TaskAggregatorService {
         this.taskResultMap.delete(eventName);
     }
 
-    private runningTask$?: Observable<{}>;
 
     async runTaskObservable<T>(task: () => Promise<T>, eventName: string) : 
     Promise<Observable<{}>>{
 
-          if (this.getTaskResult(eventName) !== undefined){
-            this.logger.log("task is currently executing, skip reexecuting");
+        if (this.getTaskResult(eventName) !== undefined){
+            this.queuedTasks++;
+            // this.logger.log(`task is currently executing, skip reexecuting. Currently ${this.queuedTasks} tasks`);
             return;
         }
+
+        //reset queuedTasks
+        this.queuedTasks = 0;
 
         // If no task is running, create a new observable to emit the task result
         const taskResult$ = new Subject<T>();
         this.taskResultMap.set(eventName, taskResult$);
-        this.logger.log("created subject")
+        this.logger.log(`created subject with eventName: ${eventName}`)
 
         // Your task code here
         task().then((result) => {
@@ -57,17 +59,6 @@ export class TaskAggregatorService {
             this.logger.log(`removing subject with eventName: ${eventName}`)
             this.taskResultMap.delete(eventName);
         });
-      
-
-
-                  //execute task
-        // const result = await task();
-        // this.logger.log(`executed task, result was: ${JSON.stringify(result)}`)
-
-        //emit task
-        // taskResult$.next(result);
-        // taskResult$.complete();
-
     }
 
     async runTaskEvent<T>(task: () => Promise<T>, eventName: string) : 
