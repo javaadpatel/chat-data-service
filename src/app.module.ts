@@ -4,6 +4,7 @@ import { MessageModule } from './message/message.module';
 import { SeederModule } from './seeder/seeder.module';
 import { TaskAggregatorModule } from './task-aggregator/task-aggregator.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -20,7 +21,8 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     EventEmitterModule.forRoot(),
     MessageModule,
     SeederModule,
-    TaskAggregatorModule
+    TaskAggregatorModule,
+    CommonModule
   ],
   controllers: [],
   providers: [],

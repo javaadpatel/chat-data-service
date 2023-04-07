@@ -7,6 +7,7 @@ export class TaskAggregatorService {
     private logger = new Logger(TaskAggregatorService.name);
     private taskResultMap = new Map<string, Subject<{}>>();
     private queuedTasks = 0;
+    private totalTasksExecuted = 0;
 
     constructor(private readonly eventEmitter: EventEmitter2){}
 
@@ -57,6 +58,7 @@ export class TaskAggregatorService {
             taskResult$.next(result);
             taskResult$.complete();
             this.logger.log(`removing subject with eventName: ${eventName}`)
+            this.logger.log(`total tasks executed: ${++this.totalTasksExecuted}`)
             this.taskResultMap.delete(eventName);
         });
     }
