@@ -1,5 +1,10 @@
+# Chat Data Service
 
-# View the data in the mysql database
+This repository is a proof of concept for a data service implemented in NestJS. It covers the basic implementation of request aggregation and error handling.
+
+Read more about data services here: <blog article url>
+
+## View the data in the mysql database
 
 Exec into docker container `docker exec -it chat-data-service-mysql-1 sh`
 
@@ -12,8 +17,8 @@ Execute the seeding script manually: `mysql -uroot -ppassword chat < /docker-ent
 Run the artillery test:
 `artillery run message-load-test.yml`
 
-# Results
-## Standard message querying endpoint
+## Results
+### Standard message querying endpoint
 Run the artillery test:
 `artillery run message-load-test.yml`
 
@@ -43,7 +48,7 @@ vusers.session_length:
   p95: ......................................................................... 2018.7
   p99: ......................................................................... 2018.7
 
-## Coalesced message querying endpoint
+### Coalesced message querying endpoint
 Run the artillery test:
 `artillery run coalesced-message-load-test.yml`
 
