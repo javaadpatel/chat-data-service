@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { SeederService } from './seeder/seeder.service';
 import { LogInterceptor } from './common/log.interceptor';
+import { HttpExceptionFilter } from './common/http-exception.filter';
 
 async function bootstrap() {
   const logger = new Logger("boostrap");
@@ -17,6 +18,8 @@ async function bootstrap() {
   //apply interceptors
   const logInterceptor = app.get(LogInterceptor);
   app.useGlobalInterceptors(logInterceptor);
+  const httpExceptionFilter = app.get(HttpExceptionFilter);
+  app.useGlobalFilters(httpExceptionFilter); 
   
   await app.listen(port);
 

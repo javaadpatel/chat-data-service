@@ -1,6 +1,5 @@
-import { Injectable, Logger, Scope } from "@nestjs/common";
-import { EventEmitter2 } from "@nestjs/event-emitter";
-import { Observable, Subject, share } from "rxjs";
+import { HttpException, HttpStatus, Injectable, Logger } from "@nestjs/common";
+import { Observable, Subject } from "rxjs";
 
 @Injectable()
 export class TaskAggregatorService {
@@ -8,33 +7,8 @@ export class TaskAggregatorService {
     private taskResultMap = new Map<string, Subject<{}>>();
     private queuedTasks = 0;
     private totalTasksExecuted = 0;
-
-    constructor(private readonly eventEmitter: EventEmitter2){}
-
-    async runTask<T>(task: () => Promise<T>, eventName: string) : Promise<void>{
-        //perform aggregation here
-        if (this.getTaskResult(eventName) !== undefined){
-            this.logger.log("task is currently executing, skip reexecuting");
-            return;
-        }
-
-        //register task
-        const taskResult$ = new Subject<T>();
-        this.taskResultMap.set(eventName, taskResult$);
-
-        //execute task
-        const result = await task();
-        this.logger.log(`executed task, result was: ${JSON.stringify(result)}`)
-
-        //emit task
-        taskResult$.next(result);
-        taskResult$.complete();
-
-        //remove task
-        this.logger.log(`removing subject with eventName: ${eventName}`)
-        this.taskResultMap.delete(eventName);
-    }
-
+    private retries = 3;
+    private retryDelayInMilliseconds = 0;
 
     async runTaskObservable<T>(task: () => Promise<T>, eventName: string) : 
     Promise<Observable<{}>>{
@@ -54,24 +28,38 @@ export class TaskAggregatorService {
         this.logger.log(`created subject with eventName: ${eventName}`)
 
         // Your task code here
-        task().then((result) => {
+        this.retryTask(task(), this.retries, this.retryDelayInMilliseconds)
+        .then((result: T) => {
             taskResult$.next(result);
             taskResult$.complete();
+            this.logger.log(`total tasks executed: ${++this.totalTasksExecuted}`);
+        })
+        .catch((err) => {
+            taskResult$.error(err);
+        })
+        .finally(() => {
             this.logger.log(`removing subject with eventName: ${eventName}`)
-            this.logger.log(`total tasks executed: ${++this.totalTasksExecuted}`)
             this.taskResultMap.delete(eventName);
         });
     }
 
-    async runTaskEvent<T>(task: () => Promise<T>, eventName: string) : 
-    Promise<void>{
-         //execute task
-        const result = await task();
-        this.logger.log(`executed task, result was: ${JSON.stringify(result)}`)
-
-        //emit task
-        this.eventEmitter.emit(eventName, result);
-    }
+    private retryTask<T>(task: Promise<T>, retries: number, delayInMilliseconds: number) {
+        return new Promise((resolve, reject) => {
+          task
+            .then(resolve)
+            .catch((error) => {
+              if (retries === 0){
+                reject(error);
+              } else {
+                setTimeout(() => {
+                    this.retryTask(task, retries - 1, delayInMilliseconds)
+                        .then(resolve)
+                        .catch(reject)
+                }, delayInMilliseconds);
+              }
+            })
+        })
+      }
 
     getTaskResult(eventName: string) : Subject<{}>{
         return this.taskResultMap.get(eventName);
