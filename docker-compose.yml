@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_DATABASE: 'chat'
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_TCP_PORT: 3308
+      MYSQL_ROOT_HOST: '%'
+    ports:
+      - 3308:3308
+    expose:
+      - 3308
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql #seeding script
+      - ./messages.csv:/docker-entrypoint-initdb.d/messages.csv

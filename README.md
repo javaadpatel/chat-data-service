@@ -1,73 +1,74 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
-</p>
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+# View the data in the mysql database
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Exec into docker container `docker exec -it chat-data-service-mysql-1 sh`
 
-## Description
+Log into mysql console `mysql -uroot -ppassword chat`
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Full command: `docker exec -it chat-data-service-mysql-1 mysql -uroot -ppassword chat`
 
-## Installation
+Execute the seeding script manually: `mysql -uroot -ppassword chat < /docker-entrypoint-initdb.d/init.sql`
 
-```bash
-$ npm install
-```
+Run the artillery test:
+`artillery run message-load-test.yml`
 
-## Running the app
+# Results
+## Standard message querying endpoint
+Run the artillery test:
+`artillery run message-load-test.yml`
 
-```bash
-# development
-$ npm run start
+When executing the load test against the non-coalesced endpoint. The results were:
+--------------------------------
+Summary report @ 13:35:52(+0200)
+--------------------------------
 
-# watch mode
-$ npm run start:dev
+http.codes.200: ................................................................ 3000
+http.request_rate: ............................................................. 100/sec
+http.requests: ................................................................. 3000
+http.response_time:
+  min: ......................................................................... 2000
+  max: ......................................................................... 2026
+  median: ...................................................................... 2018.7
+  p95: ......................................................................... 2018.7
+  p99: ......................................................................... 2018.7
+http.responses: ................................................................ 3000
+vusers.completed: .............................................................. 3000
+vusers.created: ................................................................ 3000
+vusers.created_by_name.Get messages by channelId: .............................. 3000
+vusers.failed: ................................................................. 0
+vusers.session_length:
+  min: ......................................................................... 2001.4
+  max: ......................................................................... 2026.7
+  median: ...................................................................... 2018.7
+  p95: ......................................................................... 2018.7
+  p99: ......................................................................... 2018.7
 
-# production mode
-$ npm run start:prod
-```
+## Coalesced message querying endpoint
+Run the artillery test:
+`artillery run coalesced-message-load-test.yml`
 
-## Test
+When executing the load test against the coalesced endpoint. The results were:
+--------------------------------
+Summary report @ 13:54:38(+0200)
+--------------------------------
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://kamilmysliwiec.com)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](LICENSE).
+http.codes.200: ................................................................ 3000
+http.request_rate: ............................................................. 100/sec
+http.requests: ................................................................. 3000
+http.response_time:
+  min: ......................................................................... 12
+  max: ......................................................................... 2017
+  median: ...................................................................... 1022.7
+  p95: ......................................................................... 1901.1
+  p99: ......................................................................... 1978.7
+http.responses: ................................................................ 3000
+vusers.completed: .............................................................. 3000
+vusers.created: ................................................................ 3000
+vusers.created_by_name.Get messages by channelId: .............................. 3000
+vusers.failed: ................................................................. 0
+vusers.session_length:
+  min: ......................................................................... 12.6
+  max: ......................................................................... 2018.5
+  median: ...................................................................... 1022.7
+  p95: ......................................................................... 1901.1
+  p99: ......................................................................... 1978.7
