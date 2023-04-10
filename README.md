@@ -2,7 +2,7 @@
 
 This repository is a proof of concept for a data service implemented in NestJS. It covers the basic implementation of request aggregation and error handling.
 
-Read more about data services here: <blog article url>
+Read more about data services here: [Data Services](https://javaadpatel.com/data-services-for-improving-database-performance/)
 
 ## View the data in the mysql database
 
